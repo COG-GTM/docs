@@ -3,21 +3,31 @@ title: Healthchecks
 description: Learn how to configure health checks to guarantee zero-downtime deployments of services on Railway.
 ---
 
-Healthchecks can be used to guarantee zero-downtime [deployments](/deployments/reference) of your [service](/services) by ensuring the new version is live and able to handle requests.
+Healthchecks guarantee zero-downtime [deployments](/deployments/reference) of your [service](/services) by ensuring the new version is live and able to handle requests before Railway routes traffic to it.
 
 ## How it works
 
-When a new deployment is triggered for a service, if a healthcheck endpoint is configured, Railway will query the endpoint until it receives an HTTP `200` response. Only then will the new deployment be made active and the previous deployment inactive.
+When a new deployment is triggered for a service with a healthcheck endpoint configured, Railway keeps the previous deployment active and continues routing traffic to it. Railway queries the healthcheck endpoint on the new deployment until it receives an HTTP `200` response. Only then does Railway mark the new deployment as active, route traffic to it, and remove the previous deployment.
 
-**Note:** Railway does not monitor the healthcheck endpoint after the deployment has gone live.
+This process enables zero-downtime deployments: your users experience no interruption because the old version of the service continues to handle requests while the new version starts up. Traffic switches to the new deployment only after Railway confirms it is healthy.
+
+If the new deployment fails to return a `200` status code within the [configured timeout](#healthcheck-timeout), Railway marks the deploy as failed and the previous version continues serving traffic.
+
+**Note:** Railway does not monitor the healthcheck endpoint after the deployment has gone live. For continuous monitoring, see [continuous healthchecks](#continuous-healthchecks).
 
 ## Configure the healthcheck path
 
 To configure a healthcheck:
 
-1. Ensure your webserver has an endpoint (e.g. `/health`) that will return an HTTP status code of 200 when the application is live and ready.
+1. Add a health endpoint to your application that returns an HTTP `200` status code when the service is ready to accept traffic. For example, a minimal Express endpoint:
 
-2. Under your service settings, input your health endpoint. Railway will wait for this endpoint to serve a `200` status code before switching traffic to your new endpoint.
+    ```javascript
+    app.get('/health', (req, res) => {
+      res.status(200).json({ status: 'ok' });
+    });
+    ```
+
+2. Under your service settings, input your health endpoint path (for example, `/health`). Railway queries this endpoint on each new deployment and routes traffic to it only after receiving a `200` response.
 
 ## Configure the healthcheck port
 
@@ -61,6 +71,6 @@ If your application does not permit requests from that hostname, you may encount
 
 ## Continuous healthchecks
 
-The healthcheck endpoint is currently **_not used for continuous monitoring_** as it is only called at the start of the deployment, to ensure it is healthy prior to routing traffic to it.
+The healthcheck endpoint is **_not used for continuous monitoring_**. Railway only calls it at the start of the deployment to ensure the service is healthy prior to routing traffic to it.
 
-If you are looking for a quick way to setup continuous monitoring of your service(s), check out the <a href="https://railway.com/deploy/p6dsil" target="_blank">Uptime Kuma template</a> in the template marketplace.
+If you are looking for a way to set up continuous monitoring of your service(s), check out the <a href="https://railway.com/deploy/p6dsil" target="_blank">Uptime Kuma template</a> in the template marketplace.
