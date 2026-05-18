@@ -169,6 +169,28 @@ pip freeze > requirements.txt
 
 **Note:** It's only safe to run the command above in a virtual environment, else it will freeze all python packages installed on your system.
 
+8. Configure static file collection for deployment:
+
+When you deploy to Railway, Django needs to run `collectstatic` to gather all static files into the `STATIC_ROOT` directory so that WhiteNoise can serve them.
+
+Set the service [Build Command](/builds/build-configuration#customize-the-build-command) to:
+
+```bash
+python manage.py collectstatic --noinput
+```
+
+This runs `collectstatic` during each deployment build, ensuring your static files are always up to date.
+
+**Note:** Do not run `collectstatic` as a [Pre-Deploy Command](/deployments/pre-deploy-command). Pre-deploy commands run in a separate container, so filesystem changes are not persisted to the app container.
+
+Railway uses [Railpack](/builds/railpack) to detect Django apps. When no custom start command is set, Railpack starts the app with:
+
+```bash
+python manage.py migrate && gunicorn liftoff.wsgi
+```
+
+This applies database migrations automatically before the web server starts. If you set a custom start command, be sure to include `python manage.py migrate` before your server command, or add it as a [Pre-Deploy Command](/deployments/pre-deploy-command) to keep migrations in your deployment flow.
+
 With these changes, your Django app is now ready to be deployed to Railway!
 
 ## Deploy Django app on Railway
