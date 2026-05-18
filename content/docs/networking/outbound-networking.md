@@ -11,7 +11,13 @@ SMTP is only available on the Pro plan and above.
 
 Free, Trial, and Hobby plans must use transactional email services with HTTPS APIs. SMTP is disabled on these plans to prevent spam and abuse. However, even when SMTP is available, we recommend transactional email services with HTTPS APIs for all plans due to their enhanced features and analytics.
 
-<Banner variant="info">Upon upgrading to Pro, please re-deploy your service that needs to use SMTP for the changes to take effect.</Banner>
+<Banner variant="info">Upon upgrading to Pro, re-deploy your service that needs to use SMTP for the changes to take effect.</Banner>
+
+### SMTP connection behavior on non-Pro plans
+
+Outbound connections to SMTP ports (25, 465, 587) are blocked on Free, Trial, and Hobby plans. Attempts to connect result in `i/o timeout` or `connection timed out` errors. These errors come from the platform, not from your code or email provider.
+
+If you see SMTP timeout errors, check your [plan](https://railway.com/pricing). To send email from a non-Pro plan, use one of the [email services](#email-service-examples) listed below, which communicate over HTTPS instead of SMTP.
 
 ### Email service examples
 
@@ -28,7 +34,9 @@ These services provide detailed analytics and robust APIs designed for modern ap
 
 ### Debugging SMTP issues
 
-If you are experiencing issues with SMTP on the Pro plan, please the follow the steps below to help us diagnose the problem:
+<Banner variant="warning">SMTP is not available on Free, Trial, or Hobby plans. If you are on one of these plans and getting timeout errors, switch to an [HTTPS-based email service](#email-service-examples) or upgrade to the Pro plan.</Banner>
+
+If you are on the Pro plan and experiencing issues with SMTP, follow the steps below to help diagnose the problem:
 
 1. First, ensure that you have tried re-deploying your service
 
